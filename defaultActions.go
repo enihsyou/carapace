@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -136,6 +137,7 @@ func ActionExecute(cmd *cobra.Command) Action {
 // ActionDirectories completes directories.
 func ActionDirectories() Action {
 	return ActionCallback(func(c Context) Action {
+		c.Value = filepath.ToSlash(c.Value)
 		cDir, err := c.Abs(c.Dir)
 		if err != nil {
 			return ActionMessage(err.Error())
@@ -150,13 +152,15 @@ func ActionDirectories() Action {
 				}
 				return url.Parse("file://" + uid.PathEscape(abs))
 			}).
-			Query("file", "directories", "", "C_DIR", cDir)
+			Query("file", "directories", "", "C_DIR", cDir).
+			Invoke(c).ToA()
 	}).Tag("directories")
 }
 
 // ActionFiles completes files with optional suffix filtering.
 func ActionFiles(suffix ...string) Action {
 	return ActionCallback(func(c Context) Action {
+		c.Value = filepath.ToSlash(c.Value)
 		cDir, err := c.Abs(c.Dir)
 		if err != nil {
 			return ActionMessage(err.Error())
@@ -173,7 +177,8 @@ func ActionFiles(suffix ...string) Action {
 			}).
 			Query("file", "files", "",
 				"C_DIR", cDir,
-				"suffix", strings.Join(suffix, ","))
+				"suffix", strings.Join(suffix, ",")).
+			Invoke(c).ToA()
 	}).Tag("files")
 }
 

@@ -34,6 +34,10 @@ func actionPath(fileSuffixes []string, dirOnly bool) Action {
 		}
 
 		actualFolder := filepath.ToSlash(filepath.Dir(abs))
+		if c.Value == "~" {
+			actualFolder = abs
+			displayFolder = "~/"
+		}
 		files, err := os.ReadDir(actualFolder)
 		if err != nil {
 			return ActionMessage(err.Error())

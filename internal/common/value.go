@@ -2,6 +2,7 @@
 package common
 
 import (
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -121,8 +122,10 @@ func (r RawValues) Decolor() RawValues {
 // FilterPrefix filters values with given prefix.
 func (r RawValues) FilterPrefix(prefix string) RawValues {
 	filtered := make(RawValues, 0)
+	pathPrefix := filepath.ToSlash(prefix)
 	for _, r := range r {
-		if match.HasPrefix(r.Value, prefix) {
+		if match.HasPrefix(r.Value, prefix) ||
+			(r.Tag == "files" || r.Tag == "directories") && match.HasPrefix(r.Value, pathPrefix) {
 			filtered = append(filtered, r)
 		}
 	}
