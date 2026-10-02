@@ -320,6 +320,10 @@ PowerShell's AST-based parsing gives carapace properly tokenized arguments witho
 
 ## Edge Cases and How Carapace Handles Them
 
+### Native Command Output Encoding
+
+PowerShell can decode native command output using a different encoding from carapace's UTF-8 output. To preserve Unicode completion values, display text, and tooltips without changing `[Console]::OutputEncoding`, `ActionRawValues()` escapes non-ASCII characters in the serialized JSON as `\uXXXX`. Characters outside the Basic Multilingual Plane use UTF-16 surrogate pairs. `ConvertFrom-Json` restores the original characters from this ASCII-only output.
+
 ### Edge Case 1: Empty `CompletionResult` Fields Cause Errors
 
 **Problem**: PowerShell's `[CompletionResult]::new()` constructor throws an error if any parameter is an empty string. This is a .NET API limitation — the constructor validates that `CompletionText`, `ListItemText`, and `ToolTip` are non-empty.

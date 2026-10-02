@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"unicode/utf16"
 
 	"github.com/carapace-sh/carapace/internal/common"
 	"github.com/carapace-sh/carapace/internal/env"
@@ -107,7 +108,25 @@ func ActionRawValues(currentWord string, meta common.Meta, values common.RawValu
 		})
 	}
 	m, _ := json.Marshal(vals)
-	return string(m)
+	return escapeNonASCII(string(m))
+}
+
+// Keep JSON independent of PowerShell's encoding for native command output.
+func escapeNonASCII(s string) string {
+	var escaped strings.Builder
+	escaped.Grow(len(s))
+	for _, r := range s {
+		switch {
+		case r < 0x80:
+			escaped.WriteByte(byte(r))
+		case r <= 0xffff:
+			fmt.Fprintf(&escaped, `\u%04x`, r)
+		default:
+			high, low := utf16.EncodeRune(r)
+			fmt.Fprintf(&escaped, `\u%04x\u%04x`, high, low)
+		}
+	}
+	return escaped.String()
 }
 
 func sgr(s string) string {
